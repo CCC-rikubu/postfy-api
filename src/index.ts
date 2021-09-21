@@ -1,59 +1,92 @@
 import { PrismaClient } from "@prisma/client";
-import express from "express";
+import fastify, {
+  FastifyReply,
+  FastifyRequest,
+  RequestGenericInterface,
+} from "fastify";
 
 const prisma = new PrismaClient();
-const app = express();
+const app = fastify({ logger: true });
 
-app.use(express.json());
-
-app.get("/users", async (req, res) => {
+app.get("/users", async (_req: FastifyRequest, res: FastifyReply) => {
   const users = await prisma.user.findMany();
-  res.json(users);
+  await res.send(users);
 });
 
-app.get("/feed", async (req, res) => {
+app.get("/feed", async (_req: FastifyRequest, res: FastifyReply) => {
   const posts = await prisma.post.findMany({
     where: { published: true },
     include: { author: true },
   });
-  res.json(posts);
+  await res.send(posts);
 });
 
-app.get(`/post/:id`, async (req, res) => {
+interface PostGetRequest extends RequestGenericInterface {
+  Params: {
+    id: number;
+  };
+}
+app.get<PostGetRequest>(`/post/:id`, async (req, res: FastifyReply) => {
   const { id } = req.params;
   const post = await prisma.post.findMany({
     where: { id: Number(id) },
   });
-  res.json(post);
+  await res.send(post);
 });
 
-app.get(`/posts`, async (req, res) => {
+app.get(`/posts`, async (_req: FastifyRequest, res: FastifyReply) => {
   const post = await prisma.post.findMany({
     where: { published: true },
   });
-  res.json(post);
+  await res.send(post);
 });
 
-app.post(`/user`, async (req, res) => {
-  const result = await prisma.user.create({
-    data: { ...req.body },
-  });
-  res.json(result);
-});
+interface UserData {
+  name: string;
+  email: string;
+}
 
-app.post(`/post`, async (req, res) => {
-  const { title, content, authorEmail } = req.body;
-  const result = await prisma.post.create({
-    data: {
-      title,
-      content,
-      published: true,
-      author: { connect: { email: authorEmail } },
-    },
-  });
-  res.json(result);
-});
+interface UserPostBody extends RequestGenericInterface {
+  Body: {
+    data: UserData;
+  };
+}
+
+app.post(
+  `/user`,
+  async (req: FastifyRequest<UserPostBody>, res: FastifyReply) => {
+    const { data } = req.body;
+    const result = await prisma.user.create({
+      data,
+    });
+    await res.send(result);
+  },
+);
+
+interface PostPostBody extends RequestGenericInterface {
+  Body: {
+    title: string;
+    content: string;
+    authorEmail: string;
+  };
+}
+
+app.post(
+  `/post`,
+  async (req: FastifyRequest<PostPostBody>, res: FastifyReply) => {
+    const { title, content, authorEmail } = req.body;
+    const result = await prisma.post.create({
+      data: {
+        title,
+        content,
+        published: true,
+        author: { connect: { email: authorEmail } },
+      },
+    });
+    await res.send(result);
+  },
+);
 
 app.listen(3000, () =>
-  console.log("REST API server ready at: http://localhost:3000")
+  console.log("REST API server ready at: http://localhost:3000"),
 );

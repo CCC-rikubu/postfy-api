@@ -1,9 +1,23 @@
 {
   "compilerOptions": {
-    "sourceMap": true,
-    "outDir": "dist",
+    "target": "esnext",
+    "lib": ["dom", "esnext"],
+    "jsx": "preserve",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
     "strict": true,
-    "lib": ["esnext"],
-    "esModuleInterop": true
+    "useUnknownInCatchVariables": true,
+    "alwaysStrict": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "skipLibCheck": true
   }
 }
