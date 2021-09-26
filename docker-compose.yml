@@ -1,37 +1,29 @@
-version: '3.8'
+version: '3.3'
 services:
-  postgres:
-    image: postgres:10.3
-    restart: always
-    environment:
-      - POSTGRES_USER=sammy
-      - POSTGRES_PASSWORD=your_password
-    volumes:
-      - postgres:/var/lib/postgresql/data
-    ports:
-      - '5432:5432'
-    networks:
-      - app-net
-
-
   nodejs:
-    image: node:15.13.0-alpine
+    image: node:12-alpine
     volumes:
-      - .:/app:cached
+      - .:/app
     working_dir: /app
     entrypoint:
       - sh
     command:
       - -c
       - |
-        yarn && yarn db:migrate:prod && yarn build && yarn start
+        yarn && yarn db:migrate && yarn build && ls ./dist/src && yarn start
     ports:
-      - "4000:4000"
+      - 5009:4000
+    restart: always
+    expose: ["4000"]
     networks:
-      - app-net
-volumes:
-  postgres:
+      - docker-network
+    environment:
+      VIRTUAL_PORT: 5009
+      VIRTUAL_HOST: "postfyapi.soshiharami.com"
+      LETSENCRYPT_HOST: "postfyapi.soshiharami.com"
+      LETSENCRYPT_EMAIL: "soshi0807sss@gmail.com"
+
 
 networks:
-  app-net:
-    driver: bridge
+  docker-network:
+    external: true
